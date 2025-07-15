@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Mon Chat GitHub</title>
+  <style>
+    body { font-family: sans-serif; background: #f0f0f0; padding: 20px; }
+    #chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; background: #fff; }
+    #input { width: 80%; }
+    #send { width: 18%; }
+    .message { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h2>Chat local</h2>
+  <div id="chat"></div>
+  <input type="text" id="input" placeholder="Écris ton message..." />
+  <button id="send">Envoyer</button>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+    const send = document.getElementById("send");
+
+    send.onclick = () => {
+      const msg = input.value.trim();
+      if (msg) {
+        const div = document.createElement("div");
+        div.className = "message";
+        div.textContent = "Tu : " + msg;
+        chat.appendChild(div);
+        input.value = "";
+
+        const bot = document.createElement("div");
+        bot.className = "message";
+        bot.textContent = "Bot : J'ai reçu \"" + msg + "\"";
+        chat.appendChild(bot);
+        chat.scrollTop = chat.scrollHeight;
+      }
+    };
+  </script>
+</body>
+</html>
