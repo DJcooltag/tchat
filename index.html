@@ -1,3 +1,120 @@
-<a href="https://github.com/login/oauth/authorize?client_id=Ov23liUbJyV7GLshvHa9&redirect_uri=https://djcooltag.great-site.net/index.php&scope=read:user">
-  <button>Se connecter avec GitHub</button>
-</a>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>tchat</title>
+  <style>
+    body { font-family: Arial; background: #f0f0f0; padding: 30px; text-align: center; }
+    input, button { padding: 8px; margin: 5px; }
+    #chat-box { border: 1px solid #ccc; padding: 10px; background: #fff; height: 250px; overflow-y: scroll; margin-top: 20px; max-width: 500px; margin-left: auto; margin-right: auto; }
+    .message { margin: 5px 0; text-align: left; }
+  </style>
+</head>
+<body>
+
+  <h2>👥 Chat GitHub avec Groupes Privés</h2>
+
+  <!-- Connexion GitHub -->
+  <div id="auth">
+    <a href="https://github.com/login/oauth/authorize?client_id=Ov23liUbJyV7GLshvHa9&redirect_uri=https://djcooltag.great-site.net/index.php&scope=read:user">
+      <button>Se connecter avec GitHub</button>
+    </a>
+  </div>
+
+  <div id="username"></div>
+
+  <hr>
+
+  <!-- Création du groupe -->
+  <h3>Créer un groupe</h3>
+  <input type="text" id="group-name" placeholder="Nom du groupe">
+  <button onclick="createGroup()">Créer</button>
+
+  <!-- Invitation -->
+  <h3>Inviter un utilisateur GitHub</h3>
+  <input type="text" id="invite-user" placeholder="Pseudo GitHub à inviter">
+  <button onclick="sendInvitation()">Inviter</button>
+
+  <hr>
+
+  <!-- Chat -->
+  <h3>Chat du groupe</h3>
+  <div id="chat-box"></div>
+
+  <input type="text" id="user-input" placeholder="Ton message...">
+  <button onclick="sendMessage()">Envoyer</button>
+
+  <script>
+    const currentUser = localStorage.getItem("github_user");
+    const usernameDiv = document.getElementById("username");
+    if (currentUser) {
+      usernameDiv.textContent = "Connecté en tant que : " + currentUser;
+      document.getElementById("auth").style.display = "none";
+    }
+
+    let groupes = {};           // groupName => { createur, membres, messages }
+    let invitations = {};       // githubUsername => [groupName]
+    let groupeActif = null;
+
+    function createGroup() {
+      const nom = document.getElementById("group-name").value.trim();
+      if (!nom || !currentUser) return alert("Nom ou utilisateur manquant");
+      groupes[nom] = { createur: currentUser, membres: [currentUser], messages: [] };
+      groupeActif = nom;
+      alert("Groupe '" + nom + "' créé !");
+      afficherChat();
+    }
+
+    function sendInvitation() {
+      const ami = document.getElementById("invite-user").value.trim();
+      if (!ami || !groupeActif || !groupes[groupeActif]) return alert("Nom invalide");
+
+      if (!invitations[ami]) invitations[ami] = [];
+      invitations[ami].push(groupeActif);
+      alert("Invitation envoyée à " + ami);
+    }
+
+    function verifierInvitations() {
+      const invites = invitations[currentUser];
+      if (!invites) return;
+      invites.forEach(nom => {
+        const ok = confirm("Tu as été invité à rejoindre le groupe '" + nom + "'. Accepter ?");
+        if (ok) {
+          if (!groupes[nom].membres.includes(currentUser)) {
+            groupes[nom].membres.push(currentUser);
+          }
+          groupeActif = nom;
+          alert("Tu as rejoint '" + nom + "'");
+          afficherChat();
+        }
+      });
+      delete invitations[currentUser]; // une fois accepté/refusé
+    }
+
+    function sendMessage() {
+      const msg = document.getElementById("user-input").value.trim();
+      if (!msg || !groupeActif || !groupes[groupeActif]) return;
+      groupes[groupeActif].messages.push({ user: currentUser, texte: msg });
+      afficherChat();
+      document.getElementById("user-input").value = "";
+    }
+
+    function afficherChat() {
+      const zone = document.getElementById("chat-box");
+      zone.innerHTML = "";
+      const messages = groupes[groupeActif]?.messages || [];
+      messages.forEach(m => {
+        const div = document.createElement("div");
+        div.className = "message";
+        div.textContent = m.user + " : " + m.texte;
+        zone.appendChild(div);
+      });
+      zone.scrollTop = zone.scrollHeight;
+    }
+
+    // Vérifier les invitations à l’ouverture
+    if (currentUser) verifierInvitations();
+  </script>
+
+</body>
+</html>
